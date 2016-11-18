@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>int型栈结构</li>
+            </a>
+            <a href="#tag2">
+                <li>通用栈结构</li>
+            </a>
+            <a href="#tag3">
+                <li>升级版通用栈</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>栈结构</h2>
+    在C语言的泛型中实现通用数据结构，虽然C语言中没有类，没有模板，没有引用。
+    <h2 id="tag1">int型栈结构</h2>
+    <p>首先是处理int型的栈结构</p>
+    <pre>
+typedef struct 
+{
+	int *elems;
+	int loglength;
+	int alloclength;
+}stack;
+
+void StackNew(stack *s);
+void StackDispose(stack *s);
+void stackPush(stack *s,int value);
+int StackPop(stack*s);
+
+void StackNew(stack *s){
+	s->loglength=0;
+	s->alloclength=4;
+	s->elems=malloc(4*sizeof(int));
+	assert(s->elems!=NULL);
+}
+
+void StackDispose(stack *s){
+	free(s->elems);
+}  
+
+void stackPush(stack *s,int value){
+	if(s->loglength==s->alloclength){
+		s->alloclength*=2;
+		s->elems = realloc(s->elems,s->alloclength*sizeof(int));
+		assert(s->elems!==NULL);
+	}
+	s->elems[s->length]=value;
+	s->loglength++;
+}
+
+int StackPop(stack *s){
+	assert(s->loglength>0);
+	s->loglength--;
+	return s->elems[s->loglength];
+} 	
+    </pre>
+    <h2 id="tag2">通用型栈结构</h2>
+    <p>接下来是创建通用型的栈数据结构</p>
+    <pre>
+typedef struct 
+{
+	void *elems;
+	int elemSize;
+	int loglength;
+	int alloclength;
+}stack;
+
+void StackNew(stack *s,int elemSize);
+void StackDispose(stack *s);
+void stackPush(stack *s,void *elemAddr);
+void StackPop(stack *s,void *elemAddr);
+
+static void stackGrow(stack *s){
+	s->alloclength *=2;
+	s->elems=realloc(s->elems,s->alloclength*s->elemSize);
+}
+//static 修饰普通函数，说明该函数是一个内部函数，不应该在函数所在的文件之外对其引用
+
+void StackNew(stack *s,int elemSize){
+	s->elemSize=elemSize;
+	s->loglength=0;
+	s->alloclength=4;
+	s->elems=malloc(4*elemSize);
+	assert(s->elems!==NULL);
+}
+
+void StackDispose(stack *s){
+	free(s->elems);
+}
+
+void stackPush(stack *s,void *elemAddr){
+	if (s->loglength==s->alloclength)
+		stackGrow();
+	void *target = (char *)s->elems+s->loglength*s->elemSize;
+	memcpy(target,elemAddr,s->elemSize);
+	s->loglength++;
+}
+
+
+void StackPop(stack *s,void *elemAddr){
+	void *source = (char *)s->elems+(s->loglength-1)*s->elemSize
+	memcpy(elemAddr,source,s->elemSize);
+	s->loglength--;
+}
+
+int main(int argc, char const *argv[])
+{
+	char * friends = ["AI","Bob","Carl"];
+	stack stringStack;
+	StackNew(&amp;stringStack,sizeof(char *));
+	for (int i = 0; i < 3; i++)
+	{
+		char *copy = strdup(friends[i]);
+		stackPush(&amp;stringStack,&amp;copy);
+	}
+	char *name;
+	for (int i = 0; i < 3; i++)
+	{
+		StackPop(&amp;stringStack,&amp;name);
+		printf("%s\n", name);
+		free(name);
+	}
+	StackDispose(&amp;stringStack);
+	return 0;
+}
+    </pre>
+  <h2 id="tag3">升级版栈结构</h2>
+<p>最后，一个新的升级版创建函数，为了处理堆栈中的清理指针功能</p>
+<pre>
+typedef struct 
+{
+	void *elems;
+	int elemSize;
+	int loglength;
+	int alloclength;
+	void (*freefn)(void *);
+}stack;
+
+void StackNew(stack *s,int elemSize,void (*freefn)(void *));
+void StackDispose(stack *s);
+void stackPush(stack *s,void *elemAddr);
+void StackPop(stack *s,void *elemAddr);
+
+static void stackGrow(stack *s){
+	s->alloclength *=2;
+	s->elems=realloc(s->elems,s->alloclength*s->elemSize);
+}
+
+void StackNew(stack *s,int elemSize,void(*freefn)(void*)){
+	s->elemSize=elemSize;
+	s->loglength=0;
+	s->alloclength=4;
+	s->elems=malloc(4*elemSize);
+	s->freefn = freefn;
+	assert(s->elems!==NULL);
+}
+void StackDispose(stack *s){
+	if (s->freefn!==NULL)
+	{
+		for (int i = 0; i < s->loglength; i++)
+		{
+			s->freefn((char*)s->elems+i*s->elemSize);
+		}
+		free(s->elems);
+	}
+}
+void stackPush(stack *s,void *elemAddr){
+	if (s->loglength==s->alloclength)
+		stackGrow();
+	void *target = (char *)s->elems+s->loglength*s->elemSize;
+	memcpy(target,elemAddr,s->elemSize);
+	s->loglength++;
+}
+
+void StackPop(stack *s,void *elemAddr){
+	void *source = (char *)s->elems+(s->loglength-1)*s->elemSize
+	memcpy(elemAddr,source,s->elemSize);
+	s->loglength--;
+}
+int main(int argc, char const *argv[])
+{
+	stack stringStack;
+	StackNew(&amp;stringStack,sizeof(char *),StringFree);
+	void StringFree(void *elems){
+		free(*(char**)elems);
+	}
+	for (int i = 0; i < 3; i++)
+	{
+		char *copy = strdup(friends[i]);
+		stackPush(&amp;stringStack,&amp;copy);
+	}
+	char *name;
+	for (int i = 0; i < 3; i++)
+	{
+		StackPop(&amp;stringStack,&amp;name);
+		printf("%s\n", name);
+	}
+	StackDispose(&amp;stringStack);
+	return 0;
+}
+</pre>
+</section>
+<footer>一个代码爱好者</footer>
+</body>
+</html>

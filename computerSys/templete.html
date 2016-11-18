@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>比较</li>
+            </a>
+            <a href="#tag2">
+                <li>线性搜索</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>C语言的模板实现</h1>
+        <h2 id="tag1">比较</h2>
+        <p>先看一段交换两个整数的函数实现：</p>
+        <pre>
+void swap(int *ap,int *bp){
+    int temp = *ap;
+    *ap = *bp;
+    *bp = temp;
+}
+int x=5,y=6;
+swap(x,y);
+    </pre>
+        <p>这段代码只能交换两个int型的数据。因为C中不存在像C++中的模板机制，这时可以通过void*类型的指针和指针偏移量实现函数模板。下面重新定义这个交换函数：</p>
+        <pre>
+void swap(void *vp1,void *vp2,int size){
+    char buffer[size];
+    memcpy(buffer,vp1,size);
+    memcpy(vp1,vp2,size);
+    memcpy(vp2,buffer,size);
+}
+//注意：void型指针不能解引用，也不能用进行算术运算
+
+int x=17,y=12;
+swap(&amp;x,&amp;y,sizeof(int));
+double d=3.14,e=2.72;
+swap(&amp;d,&amp;e,sizeod(double));
+
+char *husbansd = strdup("Fred");
+char *wife = strdup("Willa");
+swap(&amp;husband,&amp;wife,sizeof(char*));
+//&amp;husband和&amp;wife是二级指针，想完成两个字符串的交换，只需要交换两个字符串的一级指针。
+
+    </pre>
+        <h2 id="tag2">线性搜索</h2>
+        <p>下一个实例，线性搜索的模板实现</p>
+        <p>首先是int型数组的线性搜索函数</p>
+        <pre>
+int Isearch(int key,int array[],int size){
+    for(int i=0;i&lt;size;i++){
+        if(array[i]==key)
+            return i;
+    }
+    return -1;
+}
+    </pre>
+        <p>然后是通用线性搜索函数实现</p>
+        <pre>
+void *Isearch(void *key,void *base,int n,int elemSize){
+    for(int i=0;i&lt;n;i++){
+        void *elemAddr = (char*)base+i*elemSize;
+        if(memcmp(key,elemAddr,elemSize)==0)
+            return elemAddr;
+    }
+    return NULL;
+}
+    </pre>
+        <p>最后，将比较部分用一个函数实现，通过函数指针将函数作为参数实现函数间的调用</p>
+        <pre> 
+void *Isearch(void *key,void *base,int n,int elemSize,int (*cmpfn)(void *,void *)){
+    for(int i=0;i&lt;n;i++){
+        void *elemAddr = (char*)base+i*elemSize;
+        if(cmpfn(key,elemAddr)==0)
+            return elemAddr;
+    }
+    return NULL;
+}   
+
+int IntCmp(void *elem1,*elem2){
+    int *vp1=elem1;
+    int *vp2=elem2;
+    return *vp1-*vp2;
+}
+int array[5]={1,2,3,4,5};
+int size1=5;
+int key1 = 3;
+int *result1 = Isearch(&amp;key1,array,5,sizeof(int),IntCmp);
+
+
+//二级指针
+int StrCmp(void *vp1,*vp2){
+    char *s1 = *(char**)vp1;
+    char *s2 = *(char**)vp2;
+    return strcmp(s1,s2);
+}
+char *notes[] = {"Ab","F#","B","Gb","D"};
+char *favorateNote = "Eb";
+char ** found = Isearch(&amp;favorateNote,notes,5,sizeof(char *),StrCmp);
+    </pre>
+    </section>
+    <footer>一个代码爱好者</footer>
+</body>
+
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8" content="width=device-width,mixmum-scale=1.0,initial-scale=1.0,user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>字符串表示</li>
+            </a>
+            <a href="#tag2">
+                <li>整数表示</li>
+            </a>
+            <a href="#tag3">
+                <li>类型转换</li>
+            </a>
+            <a href="#tag4">
+                <li>整数运算</li>
+            </a>
+            <a href="#tag5">
+                <li>浮点数表示</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>数据在计算机中的表示方法(下)</h1>
+        <p>比较常用的数据类型主要为布尔型，字符型，字符串型，整数和浮点数。整数还可以分成有符号数和无符号数，浮点数还可以分成单精度浮点数和双精度浮点数。</p>
+        <h2 id="tag1">字符串的表示</h2>
+        <div>C语言中字符串被编码为一个以null(其值为0)的字符结尾的字符数组。每个字符都由一个标准编码表示，常见的编码方式有ASCII码和Unicode码。</div>
+        <h2 id="tag2">整数的表示</h2>
+        <div>
+            先讨论无符号数的编码，这里引入一个函数B2U<sub>w</sub>(x)=&Sigma;(i=0&rarr;w-1) x<sub>i</sub>2<sup>i</sup>,(x=[x<sub>w-1</sub>,x<sub>w-2</sub>...,x<sub>0</sub>]表示一个二进制序列)。有符号数几乎在所有的机器上都采用补码表示，虽然C语言的标准里面没有这样要求。再引入一个函数B2T<sub>w</sub>(x)=-x<sub>w-1</sub>2<sup>w-1</sup>&Sigma;(i=0&rarr;w-2) x<sub>i</sub>2<sup>i</sup>,(x=[x<sub>w-1</sub>,x<sub>w-2</sub>...,x<sub>0</sub>]表示一个二进制序列)。可以通过这两个函数将二进制的序列分别转换为无符号数和有符号数。
+        </div>
+        <div>引入三个变量：UMax,TMax,TMin,分别表示B2U()函数的最大值，B2T()函数的最大值和B2T()函数的最小值。我们会发现补码的范围是不对称的，存在关系|TMin|=|TMax|+1,TMin没有与之对应的正数，这就导致了补码运算的某些特殊属性，并且很容易造成细微的错误。产生这种不对称性的原因很简单：一般的位模式（符号位为1）表示负数，一般的位模式（符号位为0）表示非负数，由于0是非负数，这就导致正数比负数少一个。另一个规律是UMax=2TMax+1。明白了有符号数中正数比负数少一个，就很容易理解这个式子了。</div>
+        <h2 id="tag3">类型转换</h2>
+        <h3>有符号数和无符号数之间的转换</h3>
+        <div>
+            C语言允许不同的数字类型之间做强制类型转换。对于大多数C语言的实现而言，处理同样字长的有符号数和无符号数之间的相互转换的规律是：数值可能改变，但是位模式不会改变。 同上面讨论的一样，使用数学化形式描述规则。B2U
+            <sub>w</sub>和B2T<sub>w</sub>都是双射，那么用U2B<sub>w</sub>定义为B2U<sup>-1</sup>,用T2B<sub>w</sub>定义为B2T<sup>-1</sup>。最后定义T2U<sub>w</sub>(x)=B2U<sub>w</sub>(T2B<sub>w</sub>(x))，建立了从[0,2<sup>w</sup>)到[-2<sup>w-1</sup>,2<sup>w-1</sup>)的映射。同样的道理可以得到T2U()的逆映射U2T(),建立了[-2<sup>w-1</sup>,2<sup>w-1</sup>)从到[0,2<sup>w</sup>)的映射。 最后给出两个函数T2U
+            <sub>w</sub>(x)=x+2<sup>w</sup>,x
+            < 0; x, x>= 0;
+                <br>U2T<sub>w</sub>(u)=u ,x
+                < 2<sup>w-1</sup>; u-2<sup>w</sup>,u>= 2<sup>w-1</sup>;
+                    <p>在一台使用补码的机器上，当从无符号数准换成有符号数的时候效果就是应用U2T<sub>w</sub>,有符号数转换成无符号数时，就是应用函数T2U<sub>w</sub>,其中w表示数据类型的位数。</p>
+                    <p style="color: red">提示：B:Binary表示二进制，2：to, U:Unsigned 表示无符号数, T:Two's-complement 表示有符号数</p>
+                    <p>如果一个运算数是是有符号的而另一个运算数是无符号的，那么C语言将隐式的将有符号数转换为无符号数。正是由于C语言同时包含有符号和无符号表达式的处理方法，有时候会导致一些奇怪的行为，比如将-1
+                        < 0U 的结果返回false。</p>
+                            <h3>扩展一个数字的位表示</h3>
+                            <div>
+                                一种常见的运算是在不同字长的整数之间的转换，同时又保持数值不变。将一个无符号数转换为一个更大的数据类型，我们只需要简单的在开头添加0，这种运算称作0扩展(zero extension)，将一个补码数字转换为一个更大的数据类型可以执行符号扩展(sign extension),规则是在表示中添加最高有效位的副本。符号扩展后其值不会发生改变，比如说[111]和[1111]都表示值-1。
+                                <p>这时候我们会发现，-12345和53191的无符号表示在16位字长是相同的，扩展到32位后，-12345的十六进制表示为0xFFFFCFC7，而53191变成了0x0000CFC7.</p>
+                            </div>
+                            <h3>截断数字</h3>
+                            <div>将一个w位的数截断为一个k位的数，会丢弃w-k位数字，得到一个位向量。截断一个数字可能会改变它的值，这是溢出的一种形式。下面给出一个截断转换公式：
+                                <br/>无符号数字的截断结果：B2U<sub>k</sub>([x<sub>k-1</sub>,x<sub>k-2</sub>,...,x<sub>0</sub>,])=B2U<sub>w</sub>([x<sub>w-1</sub>,x<sub>w-2</sub>,...,x<sub>0</sub>,])mod 2<sup>k</sup>
+                                <br/> 补码数字的截断结果：B2T
+                                <sub>k</sub>([x<sub>k-1</sub>,x<sub>k-2</sub>,...,x<sub>0</sub>,])=U2T<sub>k</sub>(B2U<sub>w</sub>([x<sub>w-1</sub>,x<sub>w-2</sub>,...,x<sub>0</sub>,])mod 2<sup>k</sup>)</div>
+                            <h2>微妙的bug</h2>
+                            <p>看下列两段由于有符号数和无符号数之间的隐式转换引发的微妙的bug</p>
+                            <pre>
+float sun_elements(float a[],unsigned length){
+    int i;
+    float result = 0;
+    for (int i = 0; i <= length-1; i++){
+        result+=a[i];
+    }
+    return result;
+}   </pre>
+                            <br/>
+                            <pre>
+unsigned int strlen(const char *s);
+
+int strlonger(char *s,char *t){
+    return strlen(s) - strlen(t) > 0;
+}   </pre>
+                            <p>第一段代码的参数length被设为了unsigned int型，判断条件中的length-1被隐式转换成了一个无符号数，当length为0是，结果应该是0.0，循环语句执行0次，然而这里面-1(length-1)变成了一个很大的无符号整数，导致出错。第二段代码也一样，strlen(s)-strlen(t)返回一个无符号数，不可能得到负数。</p>
+                            <p>为了避免诸如此类微妙的bug，最好的方法就是不使用无符号数。事实上，Java并不支持无符号数类型。</p>
+        </div>
+        <div>关于强制类型转换，在这里还要提一下关于C语言指针间的转换。看一下下面的这一行代码<pre>
+int a = 36;
+float f = *(float *)&amp;a;</pre> 这段代码是将一个int型指针转换成一个float型的指针，位模式依旧不会发生改变，只是指针会根据不同的指针类型确定读取的长度。这段代码并不会输出36.0，而是一个很小的数，结果如下图所示。这和浮点数的位表示方法是相关的，浮点数在计算机中采用的是IEEE浮点数表示方法。下面会有详细的表示方法的介绍。
+        </div>
+        <figure class="d-grid-6 m-grid-4" style="padding: 0;"><img src="../images/result3.png"></figure>
+        <h2 id="tag4">整数的运算</h2>
+        <h2 id="tag5">浮点数表示</h2>
+        <div>浮点表示对形如V=x*2<sup>y</sup>的有理数进行编码，它对执行涉及非常大的数字，非常接近0的数，以及更普遍的作为实数运算近似值的计算非常的有用。
+            <p>给出一种简单易懂的浮点数换算思路：二进制序列乘以权值，单精度数有1个符号位，8个整数位，23个小数位，所以权值依次应该是2<sup>7</sup>...2<sup>0</sup>2<sup>-23</sup>,虽然这不是最终的浮点数的表示方法，不过却提供了一种表示浮点数的思路。</p>
+            <h3>IEEE浮点表示：V=(-1)<sup>s</sup> * M * 2<sup>E</sup></h3>
+            <figure style="padding: 0" class="d-grid-5 m-grid-4"><img src="../images/IEEE.jpg"></figure>
+            <figure style="padding: 0" class="d-grid-5 m-grid-4"><img src="../images/E.jpg"></figure>
+            <p>
+                尾数M是一个二进制小数，它的范围是1~2-&epsilon;，或者0~1-&epsilon;。 阶码E的作用是对浮点数进行加权，这个权重是2的E次幂(可能是负数)。
+            </p>
+            <p>规格化的值中，阶码字段被解释为以偏置(biased)形式表示的有符号整数。阶码的值E=e-Bias,e表示无符号数，其位表示为e<sub>k-1</sub>...e<sub>1</sub>e<sub>0</sub>，而Bias是一等于2<sup>k-1</sup>-1(单精度为127，双精度为1023)的偏置值。由此产生指数的取值范围，单精度-126~+127，双精度是-1022~+1023。对于小数字段frac的解释为描述小数值得f(0
+                <=f&lt;1),其二进制表示为0.f<sub>n-1</sub>f<sub>n-2</sub>...f<sub>0</sub>。把尾数定义为M=f+1。</p>
+            <span style="color: red">书上写道：既然我们能够调整阶码E,使得尾数M在范围1<=M&lt;2之中(假设没有溢出)，那么这种表示方法是一种轻松获得额外精度位的技巧，我表示不是很理解其原因。</span>
+            <p>在非规格化值中，阶码值是E=1-Bias,尾数的值M=f。将阶码值设置为1-Bias而不是-Bias提供了一种从非规格化值到规格化值平滑转换的方法。非规格化值可以用来表示0，应为对于规格化值M>=1,所以规格化值表示不了0。非规格化值得另一个功能是表示那些非常接近0.0的值，它们提供一种属性，称为逐渐溢出。其中可能的数值均匀的接近于0.0。</p>
+            <p>举个例子理解这种表示法(以8位浮点格式为例，k=4,n=3)</p>
+            <p>00000011(非规格数) : e=0;E=-6;2<sub>E</sub>=1/64;f=3/8;M=3/8;V=3/512;十进制：0.005859;</p>
+            <p>00111010(规格数) : e=1;E=-6;2<sub>E</sub>=1;f=2/8;M=10/8;V=5/4;十进制：1.25;</p>
+        </div>
+        <h3>浮点数的舍入</h3>
+        <div>事实上浮点数的表示方法限制了浮点数的范围和精度，故而浮点运算只能近似的表示实数运算。通过一种系统的方法，找到最接近的匹配近似值，就是舍入运算的任务。以前接触过四舍五入，向上舍入，向下舍入，向0舍入，这里有一种舍入方法叫做向偶数舍入。向偶数舍入能避免向上(下)舍入带来的统计误差，另一方面向偶数舍入能够运用二进制小数。比如说小数舍入到最接近1/4的位置。</div>
+        <h3>浮点运算</h3>
+        <div></div>
+    </section>
+    <footer>一个代码爱好者</footer>
+</body>
+
+</html>

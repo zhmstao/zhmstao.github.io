@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>指针和数组</li>
+            </a>
+            <a href="#tag2">
+                <li>指针和结构体</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>使用C/C++操作内存</h1>
+        <p>
+            使用C/C++的指针可以实现对内存的位模式进行读写操作。对内存的获取和释放通过库函数moclla(),remoclla(),free()函数实现的。读取内存中的储存的信息会因为机器的存储方式而有差异，这里的存储方式指代大端法或小端法。通过指针的算术运算移动指针位置，值得注意的是，指针移动一步所跨的字节数，这取决于指针的类型，一个int型指针步距为4个字节，而一个char型指针的步距为一个字节，但是不能对void型指针进行算术运算。比如说对于数组int arr[4],其起始地址为arr,arr+1表示第一个元素的地址，由于一个int数据占四个字节，所以实际上指针arr前进了4个字节。看下面一段代码及其运行结果：</p>
+        <figure style="padding: 0" class="m-grid-4 d-grid-5"><img src="../images/code4.png"></figure>
+        <figure style="padding: 0" class="m-grid-4 d-grid-5"><img src="../images/result4.png"></figure>
+        <h3 id="tag1">指针和数组</h3>
+        <p>看下面一段有趣的代码：</p>
+        <figure style="padding: 0" class="m-grid-4 d-grid-5"><img src="../images/code5.png"></figure>
+        <figure style="padding: 0" class="m-grid-4 d-grid-5"><img src="../images/result5.png"></figure>
+        <p>这段不足10行的代码通过指针的偏移实现位级读写操作的一个实例（关于数据的存储在上一篇文章中有详细的介绍）。</p>
+        <h3 id="tag2">指针和结构体</h3>
+        <p>读下面一段C语言代码，这将有助于对指针的概念更加清晰。</p>
+        <pre>
+struct student
+{
+    char *name;
+    char suid[8];
+    int numValue;
+}
+student pupils[4];
+pupils[0].numValue = 21;
+pupils[2].name = strdup("Adam");
+pupils[3].name = pupils[0].suid+6;
+strcpy(pupils[1].suid,"40415xx");
+strcpy(pupils[3].name,"123456")
+pupils[7].suid[11]='A';
+    </pre>
+        <p>我用下面的表格表示内存空间中存储的数据。</p>
+        <figure style="padding: 0" class="m-grid-4 d-grid-8"><img src="../images/result6.jpg"></figure>
+        <h2></h2>
+    </section>
+    <footer>一个代码爱好者</footer>
+</body>
+
+</html>

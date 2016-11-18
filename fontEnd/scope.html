@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>编译</li>
+            </a>
+            <a href="#tag2">
+                <li>词法作用域</li>
+            </a>
+            <a href="#tag3">
+                <li>函数作用域与块作用域</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>javascript作用域</h1>
+        <h2 id="tag1">编译</h2>
+        <p>javascript与传统的编译语言不同，她不是提前编译编译结果也不能在分布式系统中移植</p>
+        <ul>
+            <li>编译过程：</li>
+            <li>1.将字符组合的字符串分解为词法单元(token)</li>
+            <li>2.将词法单元流(数组)转换成由元素逐级嵌套所组成的代表了程序语法结构的树(AST)</li>
+            <li>3.编译器遇到声明会查询该作用域中是否存在该名称的变量，是则忽略声明继续编译，否则在当前作用域集合中声明该变量</li>
+            <li>4.编译器为引擎生成所需的运行时代码，对于赋值操作，首先在作用域中询问该变量，是则使用该变量，否则根据作用域链向上一层查找，直到到达全局作用域</li>
+        </ul>
+        <ul>
+            <li>查询过程：</li>
+            <li>1.LHS(赋值)</li>
+            <li>2.RHS(寻值)</li>
+        </ul>
+        <pre>
+function(a){
+	var b = a;
+	return a + b;
+}
+var c = foo(2);
+			</pre>
+        <p>4处RHS:foo(...); ...= a; a ; b; </p>
+        <p>3处LHS: var c =... ; a = 2 (参数隐式赋值)；var b =...;</p>
+        <ul>
+            <li>注1：在引擎执行代码时，不会有线程专门将一个函数值分配给foo，将函数声明理解为LHS查询和赋值的形式并不合适 function foo(a){...} 不等价于 var foo , foo = function(a){...} (this指向问题)</li>
+            <li>注2：函数声明存在变量提升，函数表达式不会(TypeError)函数会被首先提升，然后是变量提升</li>
+        </ul>
+        <h2 id="tag2">词法作用域</h2>
+        <p>
+            <ul>
+                <li>词法作用域定义在词法的作用域，有你写代码时将变量块和块作用域写在那你决定，词法分析器在处理代码时保持作用域不变</li>
+                <li>作用域链冒泡查找,但是词法作用域只会查找一级标识符，对于foo.bar.baz，词法作用域只会试图查找foo标识符，找到这个变量后对象属性访问规则会接收对bar,baz属性的访问</li>
+            </ul>
+            <stong>欺骗词法</stong>
+            <p><strong>1.使用eval(...)</strong>
+                <pre>
+function foo(str,a){
+	eval(str);		//cheating!
+	console.log(a,b);
+}
+var b = 2;
+foo("var b=3;",1);  //1.3						
+					</pre>
+                <p>默认情况下，eval(...)中执行的代码包含一个或多个声明就会对eval(),所处的词法作用域进行修改，在严格模式下eval(...),运行时有它自己的词法作用域，其中的声明无法修改所在的作用域</p>
+                <p>可以间接调用eval()使其运行在全局作用域中，并对全局作用域进行修改(effictive js)</p>
+                <strong>2.使用with</strong>
+                <pre>
+function foo(obj) {
+	with (obj) {
+		a = 2;
+	}
+}
+var o1 = {
+	a: 3
+};
+var o2 = {
+	b: 3
+};
+foo( o1 );
+console.log( o1.a ); // 2
+foo( o2 );
+console.log( o2.a ); // undefined
+console.log( a ); // 2—Oops, leaked global!					
+				</pre>
+                <p>
+                    with 根据传递的对象创建了全新的作用域
+                    <br/> o1传递给with时，创建作用域o1,执行a=2的LHS,将a的值赋予2
+                    <br/> o2传递给with时，创建作用域o2,执行a=2的LHS,到达全局作用域，创建变量a，造成a的泄露
+                </p>
+            </p>
+            <h2 id="tag3">函数作用域与块作用域</h2>
+            <p>function foo(){...}: foo被绑定在其作用域，通过foo()调用</p>
+            <p>(function foo(){...})(): foo被绑定到函数表达式自身的函数中而不是所在的作用域，foo只能在...所代表的位置中访问</p>
+            <p>IIEF的另一种用途(倒置代码运行顺序)：
+                <pre>
+var a = 2;
+(function IIFE( def ){
+	def( window );
+})(function def( global ){
+		var a = 3;
+		console.log( a ); // 3
+		console.log( global.a ); // 2
+});				
+			</pre></p>
+            <p>let，const为变量绑定块，不存在变量提升,let声明附属于一个新的作用域而不是当前作用域，也不属于全局作用域，将一个块转换成了一个可以封闭的作用域</p>
+            <pre>
+Garbage collection
+function process(data) {
+// do something interesting
+}
+// anything declared inside this block can go away after!
+{
+	let someReallyBigData = { .. };
+	process( someReallyBigData );
+}
+var btn = document.getElementById( "my_button" );
+btn.addEventListener( "click", function click(evt){ //click函数形成了一个覆盖整个作用域的闭包
+						console.log("button clicked");
+					}, /*capturingPhase=*/false );				
+			</pre>
+            <pre>
+重构
+var foo = true, baz = 10;
+if (foo) {
+	var bar = 3;
+	// ...
+}
+if (baz > bar) {
+	console.log( baz );
+}
+					
+					
+var foo = true, baz = 10;
+if (foo) {
+	let bar = 3;
+	if (baz > bar) { // <-- don't forget `bar` when moving!
+	console.log( baz );
+	}
+}				
+			</pre>
+    </section>
+    <footer>一个代码爱好者</footer>
+</body>
+
+</html>

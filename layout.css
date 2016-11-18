@@ -1,0 +1,298 @@
+/***************  重置标签的样式  ******************/
+
+* {
+    font-size: 15px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Pingfang-SC, "Microsoft Yahei", SimHei, Arial, sans-serif;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+    background-color: #f9f9f9;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong {
+    font-weight: normal;
+    color: #333;
+}
+
+h1 {
+    font-size: 18px;
+    color: #00a1e9
+}
+
+h2 {
+    font-size: 17px;
+}
+h3{
+    font-size: 16px;
+}
+
+p {
+    color: #555;
+    letter-spacing: 2px;
+    margin: 5px auto;
+}
+
+a {
+    text-decoration: none;
+}
+header a{
+    color:#fff;
+}
+header a:hover{
+    color: #fff;
+}
+div {
+    color: #555;
+    letter-spacing: 1px;
+}
+
+pre {
+    color: #777;
+    margin: 5px auto;
+    padding: 10px auto;
+    border: solid 1px #ddd;
+    border-radius: 5px;
+    overflow: auto;
+}
+sub{font-size: 12px;}
+sup{font-size: 12px;}
+figure {
+    margin: 0;
+    padding: 0;
+}
+
+img {
+    width: 100%;
+}
+
+ul {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+li {
+    list-style: none;
+    color: #777;
+    padding-left: 10px;
+    font-size: 14px;
+}
+
+li:hover {
+    background-color: #ddd;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+th {
+    font-weight: normal;
+}
+
+header {
+    width: 100%;
+    height: 50px;
+    color: #fff;
+    line-height: 50px;
+    background-color: #4A7CC0;
+    letter-spacing: 1px;
+    padding-left: 6%;
+    margin-bottom: 30px;
+}
+
+aside {
+    display: none;
+    position: fixed;
+}
+
+aside li {
+    line-height: 50px;
+}
+
+section {
+    background-color: #fff;
+    padding-top: 10px;
+}
+
+footer {
+    height: 80px;
+    width: 100%;
+    background-color: #2C2D2F;
+    color: #fff;
+    text-align: center;
+    line-height: 80px;
+    margin-top: 30px;
+}
+
+
+/*******************    响应式布局   *******************/
+
+.m-grid-1 {
+    display: inline-block;
+    width: 25%;
+    padding-left: 10px;
+    padding-right: 10px;
+    box-sizing: border-box;
+}
+
+.m-grid-2 {
+    display: inline-block;
+    width: 50%;
+    padding-left: 10px;
+    padding-right: 10px;
+    box-sizing: border-box;
+}
+
+.m-grid-3 {
+    display: inline-block;
+    width: 75%;
+    padding-left: 10px;
+    padding-right: 10px;
+    box-sizing: border-box;
+}
+
+.m-grid-4 {
+    display: inline-block;
+    width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+    box-sizing: border-box;
+}
+
+.m-grid-offset-1 {
+    margin-left: 25%;
+}
+
+.m-grid-offset-2 {
+    margin-left: 50%;
+}
+
+.m-grid-offset-3 {
+    margin-left: 75%;
+}
+
+@media(min-width: 960px) {
+    .d-grid-1 {
+        display: inline-block;
+        width: 8.3%;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+    }
+    .d-grid-2 {
+        display: inline-block;
+        width: 16.7%;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+    }
+    .d-grid-3 {
+        display: inline-block;
+        width: 25%;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+    }
+    .d-grid-4 {
+        display: inline-block;
+        width: 33.3%;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+    }
+    .d-grid-5 {
+        display: inline-block;
+        width: 41.7%;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+    }
+    .d-grid-6 {
+        display: inline-block;
+        width: 50%;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+    }
+    .d-grid-7 {
+        display: inline-block;
+        width: 58.3%;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+    }
+    .d-grid-8 {
+        display: inline-block;
+        width: 66.7%;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+    }
+    .d-grid-9 {
+        display: inline-block;
+        width: 75%;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+    }
+    .d-grid-10 {
+        display: inline-block;
+        width: 83.3%;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+    }
+    .d-grid-11 {
+        display: inline-block;
+        width: 91.7%;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+    }
+    .d-grid-12 {
+        display: inline-block;
+        width: 100%;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+    }
+    .d-grid-offset-1 {
+        margin-left: 8.3%;
+    }
+    .d-grid-offset-2 {
+        margin-left: 16.7%;
+    }
+    .d-grid-offset-3 {
+        margin-left: 25%;
+    }
+    .d-grid-offset-4 {
+        margin-left: 33.3%;
+    }
+    .d-grid-offset-5 {
+        margin-left: 41.7%;
+    }
+    .d-grid-offset-6 {
+        margin-left: 50%;
+    }
+    .d-grid-offset-7 {
+        margin-left: 58.3%;
+    }
+    .d-grid-offset-8 {
+        margin-left: 66.7%;
+    }
+    .d-grid-offset-9 {
+        margin-left: 75%;
+    }
+    .d-grid-offset-10 {
+        margin-left: 83.3%;
+    }
+    .d-grid-offset-11 {
+        margin-left: 91.7%;
+    }
+}

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>从服务器加载</li>
+            </a>
+            <a href="#tag2">
+                <li>将html写进注释</li>
+            </a>
+            <a href="#tag3">
+                <li>将html写进script</li>
+            </a>
+            <a href="#tag4">
+                <li>使用javascript模板引擎</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h2>html页面渲染方案</h2>
+        <h2 id="tag1">1.从服务器加载</h2>
+        <p>将模板置于远程服务器，使用XMLHttpRequest对象获取外部标签，这种方法对单页面应用带来更多的便捷，但是这种方法很容易造成XSS漏洞，需要服务器对模板文件做适当的转义处理，比如
+            <,>以及双引号，前端也应当给出与之匹配的渲染规则，前后端转码解码策略封堵XSS漏洞。</p>
+        <pre>
+var xhr = XMLHttpRequest();
+xhr.open('get','js/dialog'+name,true);
+			
+xhr.onreadystatechange = function(){
+	if(xhr.readyState == 4 &amp;&amp; xhr.status ==200){
+		var div = document.getElementById("dlg-holder");
+		div.innerHTML = xhr.reponseText;
+		oncomplete();
+	}else{
+		handleError();
+	}
+};
+xhr.send(null);
+			
+}				
+			</pre>
+        <h2 id="tag2">2.1 简单的客户端模板--将HTML模板写进注释</h2>
+        <pre>
+html模板
+&lt;ul id="mylist"&gt;<!--<li><a href="%s">%s</a></li>-->
+	&lt;li>&lt;a href="/item/1"&gt;First item&lt;/a&gt;&lt;/li&gt;
+	&lt;li>&lt;a href="/item/1"&gt;Second item&lt;/a&gt;&lt;/li&gt;
+	&lt;li>&lt;a href="/item/1"&gt;Third item&lt;/a&gt;&lt;/li&gt;
+&lt;ul&gt;
+
+js文件
+function sprintf(text){
+	var i=1,args = arguments;
+	return text.replace(/%s/g,function(){
+		return (i < args.length)?args[i++]:"";
+	});
+}
+			
+function addItem(url,text){
+	var mylist = document.getElementById("mylist"),
+		templateText = mylist.firstChild.nodeValue;
+	result = sprintf(template,url,text);
+	mylist.insertAdjacentHTML("beforeend",result);
+}
+			
+addItem("/item/4","Four item");
+
+			</pre>
+        <h2 id="tag3">2.2 简单的客户端模板--将html模板写入Script标签</h2>
+        <pre>
+html文件
+&lt;script type="text/x-my-templete" id = "list-item"&gt;
+	&lt;li>&lt;a href="%s"&gt;%s&lt;/a&gt;&lt;/li&gt;
+&lt;/script&gt;	
+js文件
+function sprintf(text){
+	var i=1,args = arguments;
+	return text.replace(/%s/g,function(){
+		return (i < args.length)?args[i++]:"";
+	});
+}
+function addItem(url,text){
+	var mylist = document.getElementById("mylist"),
+		script = document.getElementById("list-item"),
+		template = script.text,
+		result = sprintf(templateText,url,text),
+		div = document.createElement("div");
+				
+	div.innerHTML = result.replace(/^\s*/,"");
+	list.appendChild(div.firstChild);
+}
+addItem("/item/4","Fourth item");
+			</pre>
+        <h2 id="tag4">3.复杂客户端模板(handlebars模板引擎)</h4>
+			<pre>
+html文件
+&lt;script type="text/x-handlebars-templete" id = "list-item"&gt;
+		&lt;li&gt;&lt;a href="{{url}}">{{text}}&lt;/a&gt;&lt;/li&gt;    //必须将Handlebars类库引入页面
+&lt;/script&gt;
+js文件
+function sprintf(text){
+		var i=1,args = arguments;
+		return text.replace(/%s/g,function(){
+			return (i < args.length)?args[i++]:"";
+		});
+}
+function addItem(url,text){
+	var mylist = document.getElementById("mylist"),
+		script = document.getElementById("list-item"),
+		templateText = script.text,
+		template = Handlebars.compile(script.text),
+		div = document.createElement("div"),
+		result;
+			
+		result = templat({
+			text:text,
+			url:url
+		});
+				
+		div.innerHTML = result;
+		list.appendChild(div.firstChild);
+}
+			addItem("/item/4","Fourth item");
+			</pre>
+		</section>
+
+    <footer>一个代码爱好者</footer>
+		
+</body>
+</html>

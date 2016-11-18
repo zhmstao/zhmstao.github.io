@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>使用python发送邮件</li>
+            </a>
+            <a href="#tag2">
+                <li>将采集的数据写入mysql数据库</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>使用python写代码</h1>
+        <h2 id="tag1">使用python发送邮件</h2>
+        <pre>
+
+# -*- coding: UTF-8 -*-
+
+import smtplib
+from email.mime.text import MIMEText
+from email.header import Header
+
+# 第三方 SMTP 服务
+mail_host="smtp.qq.com"  #设置服务器
+mail_user="xxxxx@qq.com"    #用户名
+mail_pass="xxxxxxx"   #使用授权码 
+
+
+sender = 'xxxxx@qq.com'
+receivers = ['xxxxx@qq.com']  # 接收邮件，可设置为你的QQ邮箱或者其他邮箱
+
+message = MIMEText('使用代码做一些有趣的事情', 'plain', 'utf-8')
+message['From'] = Header("python code", 'utf-8')
+message['To'] =  Header("to user", 'utf-8')
+
+subject = 'Using python sent email'
+message['Subject'] = Header(subject, 'utf-8')
+
+
+try:
+    smtpObj = smtplib.SMTP_SSL() 
+    smtpObj.connect(mail_host, 465)    
+    smtpObj.login(mail_user,mail_pass)  
+    smtpObj.sendmail(sender, receivers, message.as_string())
+    print "邮件发送成功"
+except smtplib.SMTPException:
+    print "Error: 无法发送邮件"		
+	</pre>
+        <h2 id="tag2">将采集的数据写入mysql数据库</h2>
+        <pre>
+#-*- coding:utf-8 -*-
+import pymysql
+import urllib
+import urllib2
+import re
+import datetime
+import random
+from bs4 import BeautifulSoup
+import sys
+
+reload(sys)
+
+sys.setdefaultencoding('utf-8')
+user_agent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.94 Safari/537.4"
+headers = { 'User-Agent' : user_agent }
+conn = pymysql.connect(host="127.0.0.1",user = 'root',passwd = None,db = 'mysql')
+cur = conn.cursor()
+random.seed(datetime.datetime.now())
+cur.execute("USE webscraping")
+def store(title,content):
+	cur.execute("INSERT INTO pages(title,content) VALUES (\"%s\",\"%s\")",(title,content))
+	cur.connection.commit()
+
+def getLinks(articleUrl):
+	html = urllib.urlopen("https://en.wikipedia.org"+articleUrl)
+	bsObj = BeautifulSoup(html,"html.parser")
+	title = bsObj.find("h1").get_text()
+	content = bsObj.find("div",{"id":"mw-content-text"}).find("p").get_text()
+	store(title,content)
+	return bsObj.find("div",{"id":"bodyContent"}).findAll("a",href=re.compile("^(/wiki/)((?!:).)*$"))
+links = getLinks("/wiki/KEVIN_Bacon")
+try:
+	while len(links)>0:
+		newArticle = links[random.randint(0,len(links)-1)].attrs["href"]
+		print (newArticle)
+		links = getLinks(newArticle)
+finally:
+	cur.close()
+	conn.close()
+	</pre>
+    </section>
+    <footer>一个代码爱好者</footer>
+</body>
+
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>信息存储的实现</li>
+            </a>
+            <a href="#tag2">
+                <li>十进制与十六进制换算</li>
+            </a>
+            <a href="#tag3">
+                <li>C语言的位级操作</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>数据在计算机中的表示方法(上)</h1>
+        <h2 id="tag1">信息存储的实现</h2>
+        <div>机器级程序(一般认为是汇编语言)将存储器看做是一个非常大的字节数组，称为虚拟存储器。存储器的每一个字节都有一个唯一的数字标识，称作它的地址，所有可能地址的集合称为虚拟地址空间。虚拟地址空间只是展现给机器程序的概念型映射，是对存储器的一种抽象。</div>
+        <h2 id="tag2">十进制与十六进制换算：</h2>
+        <div>当x是2的非负整数n次幂时，x的二进制表示就是1后面跟n个0，从低位逐次将4个0换算成十六进制的1个0，最后，将剩余的数字转换成相对应的十六进制数。当然更好的方法是使用代码来进行转换，比如Python的int(),hex()函数</div>
+        <pre>
+print hex(123)  
+//将十进制数123转换成十六进制数，结果为0x7b
+print int('7b',16)  
+//将十六进制数7b转换成十进制数，结果为123 </pre>
+        <div>何不将python这种语言作为一种强大的计算器使用，配合numpy,matplotlib,pandas等库使用，会显示出类似于matlab的强大功能。</div>
+        <h2>数据大小及其存储器寻址(以C语言为例)</h2>
+        <div>&nbsp;&nbsp;c的数据类型char表示一个单独的字节，int和float均使用4个字节表示，double类型使用8个字节表示。 而指针(如char*,char**)使用机器的全字长,这里的字长指的是一般之32位或是64位。所以在64位的机器上char*表示8个字节，而在32位及其上表示4个字节。当然数据类型的字节长度可以通过c语言sizeof()函数查看。
+        </div>
+        <div>
+            <p>&nbsp;&nbsp;这里有一点需要注意，有些机器在存储器中按照最低有效字节到最高有效字节顺序存储，称为小尾法亦或小端法(litter endian)；另一些机器按照从最高有效字节到最低有效字节顺序存储，称为大尾法亦或大端法(big endian)。例如十六进制0x12345678的大尾表示：12 34 56 78，小尾表示：78 56 34 12,设存储的地址依次为0x100 0x101 0x102 0x103。</p>
+            <p>&nbsp;&nbsp;不同的表示方法在不同的机器之间进行信息交换将会产生错误，网络传输时发送方将遵循字节顺序的规则接收方将网络标准转换成内部表示(该转换的实现，先挖坑,以后填。在阅读机器级程序时，了解字节顺序也是非常重要的。读下面一行由反汇编器生成的代码：
+                <pre>  80483bd: 01 05 64 94 04 08 add %eax, 0x8049464</pre>不难发现该十六进制字符串在该存储器中使用的是小尾法表示。</p>
+        </div>
+        <div>
+            <p>当然也可以通过C代码强制类型转换打印不同程序对象的字节表示。不难看出，在我的这台windows是小端法机器。</p>
+            <pre class="m-grid-4 d-grid-6">
+#include &lt;stdio.h&gt;
+typedef unsigned char *byte_pointer;
+void show_bytes(byte_pointer start,int len){
+    int i;
+    for(i=0;i < len;i++){
+        printf(" %.2x",start[i]);   
+    }
+    printf("\n");
+}
+void show_int(int x){
+    show_bytes((byte_pointer)&amp;x,sizeof(int));
+}
+int main(){
+    int value = 0x567892;
+    show_int(value);
+    return 0;
+}</pre>
+            <figure class="d-grid-5 m-grid-4" style="padding-left: 0;padding-right: 0;"><img src="../images/result.png"></figure>
+        </div>
+        <div>补充知识:在这里变量start是一个char*类型的指针，start[i]运算等价于*(start+i)。转换成char*型指针做指针的算术运算，start是chat*型指针，那么*start就是会从该指针指向的位置开始读取8个位表示(sizeof(char)为1字节），start+1表示指针位置向后移动8位。特别的，对void*类型的指针不能进行算术运算，因为程序指针不知道应该移动几位。将void*类型转换成char*类型在纯C代码中做泛型非常的有用（以后的代码会涉及）。在进行强制类型转换的时候，如果仅仅是进行指针间的类型转换，那么位模式将不会发生改变。改变的只是从起始位置读取的为个数。
+        </div>
+        <h2 id="tag3">C语言的位级运算</h2>
+        <p>下面看一段很有意思的交换两个值的实现代码</p>
+        <div>
+            <pre class="m-grid-4 d-grid-6">
+#include&lt;stdio.h&gt;
+void inplace_swap(int *x,int *y){
+    *y = *x ^ *y;
+    *x = *x ^ *y;
+    *y = *x ^ *y;
+}
+int main(){
+    int x=10,y=20;
+    inplace_swap(&amp;x,&amp;y);
+    printf("x=%d;y=%d",x,y);
+    return 0;
+}
+</pre>
+            <figure class="d-grid-5 m-grid-4" style="padding-left: 0;padding-right: 0;"><img src="../images/result2.png"></figure>
+            <p>这段代码没有引入第三个变量而是通过位级操作改变了两个变量的值</p>
+            <p>逻辑运算符和位运算符还是比较好理解的，需要注意的是逻辑运算符具有短路效应。稍微费点心思的应该是移位运算，对于二进制数来说，除以2等价于右移一位，乘以2等价于左移一位。如果拿这与十进制数对比，将会容易理解。对于一个十进制数，乘以10相当于把原来的数字左移一位最后一位加上0，除以10相当于添加一个小数点，对于整数部分相当于右移一位并且最高位置0。值得注意的是，左移可能会将前几位数字丢失，当然也会丢失符号位。事实上，有符号的数字是用补码表示，最高位为符号位。1表示负数，0表示整数。那么原本最高位为1的数，也就是负数，右移后符号位的数字应该置0还是置1？于是将右移分为了逻辑右移和算术右移，算术右移将原本的负数右移位全部置0，逻辑右移则不管正负数，均将移走的位置置0。</p>
+            <p>补充：补码是有符号数在计算机中的二进制表示形式。正数的补码表示为二进制代码加上符号位置0的二进制数，负数的补码表示为其绝对值的二进制取反后加上符号位置1的二进制数+1。这样表示一个负数的原因是为了保证互为正负数的值得和位0。</p>
+            <p>还有一个比较常用的位级操作，那就是掩码(mask)：x &amp; mask mask位上为1的位有效，比较常见的就是子网掩码。</p>
+        </div>
+    </section>
+    <footer>一个代码爱好者</footer>
+</body>
+
+</html>

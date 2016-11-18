@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>单体模式</li>
+            </a>
+            <a href="#tag2">
+                <li>工厂模式</li>
+            </a>
+            <a href="#tag3">
+                <li>代理模式</li>
+            </a>
+            <a href="#tag4">
+                <li>观察者模式</li>
+            </a>
+            <a href="#tag3">
+                <li>门面模式</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>javacript常用设计模式</h1>
+        <h2 id="tag1">单体模式</h2>
+        <h2 id="tag2">工厂模式</h2>
+        <h2 id="tag3">代理模式</h2>
+        <h2 id="tag4">观察者模式</h2>
+        <h2 id="tag5">门面模式</h2>
+        <pre>
+function DOMWrapper(element){
+	this.element = element;
+}
+
+DOMWrapper.prototype.addClass = function(className){
+	element.className+=" "+className;
+};
+	
+DOMWrapper.prototype.remove = function(){
+	this.element.parentNode.removeChild(this.element);
+};
+//构造DOMWrapper对象
+var wrapper = new DOMWrapper(document.getElementById("my-div"));
+//添加class
+wrapper.addClass("selected");
+//删除元素
+wrapper.remove();			
+		</pre>
+    </section>
+    <footer>一个代码爱好者</footer>
+</body>
+
+</html>

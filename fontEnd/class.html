@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>javascript构造函数</li>
+            </a>
+            <a href="#tag2">
+                <li>使用混入解决继承和多态问题</li>
+            </a>
+            <a href="#tag3">
+                <li>类理论</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>javascript面对对象编程--类设计模式</h1>
+        <h2 id="tag1">javascript的构造函数</h2>
+        <strong>什么是构造函数？</strong>
+        <p>在使用new时，函数调用变成了构造函数调用</p>
+        <strong>构造函数存在陷阱</strong>
+        <p>使用new的构造函数调用会生成.prototype和.contructor引用。声明函数的时候自动添加一个.prototype的隐式属性。prototype默认有一个公有并且不可枚举的属性.constructor,这个属性应用的是对象关联函数。而对象本身并没有.conatructor属性，在被调用的时候会沿着原型链查询</p>
+        <p>如果创建了一个构造函数并且重写了函数默认的.prototype对象引用，那么新对象将不会自动获取.constructor属性。也可以为prototype添加一个.consrructor属性(不可枚举).</p>
+        <pre>
+function Foo() { /* .. */ }
+
+Foo.prototype = { /* .. */ }; // create a new prototype object
+
+// Need to properly "fix" the missing `.constructor`
+// property on the new object serving as `Foo.prototype`.
+Object.defineProperty( Foo.prototype, "constructor" , {
+    enumerable: false,
+    writable: true,
+    configurable: true,
+    value: Foo    // point `.constructor` at `Foo`
+} );
+            </pre>
+        <strong>另一种创建关联的方式：Object.create(...)</strong>
+        <pre>
+function Foo(name) {
+    this.name = name;
+}
+
+Foo.prototype.myName = function() {
+    return this.name;
+};
+
+function Bar(name,label) {
+    Foo.call( this, name );
+    this.label = label;
+}
+
+// here, we make a new `Bar.prototype`
+// linked to `Foo.prototype`
+Bar.prototype = Object.create( Foo.prototype );
+
+// Beware! Now `Bar.prototype.constructor` is gone,
+// and might need to be manually "fixed" if you're
+// in the habit of relying on such properties!
+
+Bar.prototype.myLabel = function() {
+    return this.label;
+};
+
+var a = new Bar( "a", "obj a" );
+
+a.myName(); // "a"
+a.myLabel(); // "obj a"         
+        </pre>
+        <h2 id="tag2">使用混入解决继承和多态问题</h2>
+        <strong>
+            在继承和实例化的时候，javascript的随性机制并不会自动的执行复制行为。
+            javasrcipt中只有对象。没有可以被实例化的类。一个对象并不会被复制到其他对象，而是通过原型链被关联起来。为了表示出复制行为，采用了Mixin的解决方案。
+            </strong>
+        <h3>显式混入</h3>
+        <pre>
+function mixin( sourceObj, targetObj ) {
+    for (var key in sourceObj) {
+        // only copy if not already present
+        if (!(key in targetObj)) {
+            targetObj[key] = sourceObj[key];
+        }
+    }
+
+    return targetObj;
+}
+
+var Vehicle = {
+    engines: 1,
+
+    ignition: function() {
+        console.log( "Turning on my engine." );
+    },
+
+    drive: function() {
+        this.ignition();
+        console.log( "Steering and moving forward!" );
+    }
+};
+
+var Car = mixin( Vehicle, {
+    wheels: 4,
+
+    drive: function() {
+        Vehicle.drive.call( this );     //显式多态
+        console.log( "Rolling on all " + this.wheels + " wheels!" );
+    }
+} );
+            </pre>
+        <p>
+            另一种混入函数，可能有重写的风险</p>
+        <pre>
+
+function mixin( sourceObj, targetObj ) {
+    for (var key in sourceObj) {
+        targetObj[key] = sourceObj[key];
+    }
+
+    return targetObj;
+}
+
+var Vehicle = {
+    // ...
+};
+
+// first, create an empty object with
+// Vehicle's stuff copied in
+var Car = mixin( Vehicle, { } );
+
+// now copy the intended contents into Car
+mixin( {
+    wheels: 4,
+
+    drive: function() {
+        // ...
+    }
+}, Car );
+            </pre>
+        <p>
+            javascript中的函数无法真正的复制，做事只能复制函数对象的引用。如果修改了共享的函数对象那么所有的继承者都会受到影响。
+        </p>
+        <h3>寄生混入</h3>
+        <pre>
+function Vehicle() {
+    this.engines = 1;
+}
+Vehicle.prototype.ignition = function() {
+    console.log( "Turning on my engine." );
+};
+Vehicle.prototype.drive = function() {
+    this.ignition();
+    console.log( "Steering and moving forward!" );
+};
+
+// "Parasitic Class" `Car`
+function Car() {
+    // first, `car` is a `Vehicle`
+    var car = new Vehicle();
+
+    // now, let's modify our `car` to specialize it
+    car.wheels = 4;
+
+    // save a privileged reference to `Vehicle::drive()`
+    var vehDrive = car.drive;
+
+    // override `Vehicle::drive()`
+    car.drive = function() {
+        vehDrive.call( this );
+        console.log( "Rolling on all " + this.wheels + " wheels!" );
+    };
+
+    return car;
+}
+
+var myCar = new Car();
+
+myCar.drive();
+// Turning on my engine.
+// Steering and moving forward!
+// Rolling on all 4 wheels!                 
+                </pre>
+        <h3>隐式混入</h3>
+        <pre>
+var Something = {
+    cool: function() {
+        this.greeting = "Hello World";
+        this.count = this.count ? this.count + 1 : 1;
+    }
+};
+
+Something.cool();
+Something.greeting; // "Hello World"
+Something.count; // 1
+
+var Another = {
+    cool: function() {
+        // implicit mixin of `Something` to `Another`
+        Something.cool.call( this );
+    }
+};
+
+Another.cool();
+Another.greeting; // "Hello World"
+Another.count; // 1 (not shared state with `Something`)                 
+                </pre>
+        <h2 id="tag3">类理论</h2>
+        <p>类设计模式鼓励在继承的时候使用方法重写。在父类中定义一些通用的方法，甚至在添加新行为时通过super调用这个方法的原始版本，许多行为先抽象到父类然后用子类将其特殊化。
+        </p>
+        <p>创建UI控件:</p>
+        <pre>
+// Parent class
+function Widget(width,height) {
+    this.width = width || 50;
+    this.height = height || 50;
+    this.$elem = null;
+}
+
+Widget.prototype.render = function($where){
+    if (this.$elem) {
+        this.$elem.css( {
+            width: this.width + "px",
+            height: this.height + "px"
+        } ).appendTo( $where );
+    }
+};
+
+// Child class
+function Button(width,height,label) {
+    // "super" constructor call
+    Widget.call( this, width, height );
+    this.label = label || "Default";
+
+    this.$elem = $( "&lt;button&gt;" ).text( this.label );
+}
+
+// make `Button` "inherit" from `Widget`
+Button.prototype = Object.create( Widget.prototype );
+
+// override base "inherited" `render(..)`
+Button.prototype.render = function($where) {
+    // "super" call
+    Widget.prototype.render.call( this, $where );
+    this.$elem.click( this.onClick.bind( this ) );
+};
+
+Button.prototype.onClick = function(evt) {
+    console.log( "Button '" + this.label + "' clicked!" );
+};
+
+$( document ).ready( function(){
+    var $body = $( document.body );
+    var btn1 = new Button( 125, 30, "Hello" );
+    var btn2 = new Button( 150, 40, "World" );
+
+    btn1.render( $body );
+    btn2.render( $body );
+} );                
+            </pre>
+    </section>
+    <footer>一个代码爱好者</footer>
+</body>
+
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>什么是闭包</li>
+            </a>
+            <a href="#tag2">
+                <li>模块机制</li>
+            </a>
+            <a href="#tag3">
+                <li>闭包的陷阱</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>javascript闭包</h1>
+        <h2 id="tag1">什么是闭包</h2>
+        <p>Closure is when a function can remember and access its lexical scope even when it's invoked outside its lexical scope.</p>
+        <p>Whatever facility we use to transport an inner function outside of its lexical scope, it will maintain a scope reference to where it was originally declared, and wherever we execute it, that closure will be exercised.</p>
+        <p>如果将函数（访问他们各自的词法作用域）当做第一级的值类型并且到处传递，你就会看到这些闭包在这些函数中的应用。在定时器，事件监听器，Ajax请求，跨窗口通信，Web Workers或者任何异步(或同步)任务中，只要使用了回调函数 ，实际上就是在使用闭包</p>
+        <p>Javascript 中，每个函数都有一个与之相关联的作用域链。每次调用 JavaScript 函数的时候，都会为之创建一个新的对象用来保存局部变量，并把这个对象添加至作用域链中。当函数返回时，再将这个对象删除，此对象会被当做垃圾回收。但如果这个函数定义了嵌套的函数，并将它存储在某处的属性里，就意味着有了一个外部引用指向这个嵌套的函数。它就不会被当作垃圾回收，它所指向的变量绑定对象同样不会被回收</p>
+        <p>定义在一个函数内部的函数，但是呢，这个里面的函数他访问了他外面的那个函数的变量。这对于外面函数来说，就形成了闭包，</p>
+        <h2 id="tag2">基于闭包的模块模式</h2>
+        <ul>
+            <li>模块模式的两个必要条件：</li>
+            <li>1.必须有外部的封闭函数，该函数至少被调用一次(每次调用都会创建一个新的模块实例)</li>
+            <li>2.封闭函数必须返回至少一个内部函数，这样内部函数才能在私有的作用域中形成闭包，并且可以访问或者修改私有的状态</li>
+        </ul>
+        <strong>单例模式下的模块</strong>
+        <pre>
+var foo = (function CoolModule(id) {   //CoolModule()模块创建器
+    function change() {
+        // modifying the public API
+        publicAPI.identify = identify2;
+    }
+
+    function identify1() {
+        console.log( id );
+    }
+
+    function identify2() {
+        console.log( id.toUpperCase() );
+    }
+
+    var publicAPI = {
+        change: change,
+        identify: identify1
+    };
+
+    return publicAPI;       //命名将要做为公共API返回的对象
+})( "foo module" );
+
+foo.identify(); // foo module
+foo.change();
+foo.identify(); // FOO MODULE               
+            </pre>
+        <h2>模块机制</h2>
+        <strong>1.现代模块机制：大多数模块依赖加载器/管理器都是将这种模块定义封装进一个有好的API中</strong>
+        <pre>
+var MyModules = (function Manager() {
+    var modules = {};
+
+    function define(name, deps, impl) {
+        for (var i=0; i < deps.length; i++) {
+            deps[i] = modules[deps[i]];
+        }
+        modules[name] = impl.apply( impl, deps );
+    }
+
+    function get(name) {
+        return modules[name];
+    }
+
+    return {
+        define: define,
+        get: get
+    };
+})();
+
+
+MyModules.define( "bar", [], function(){
+    function hello(who) {
+        return "Let me introduce: " + who;
+    }
+
+    return {
+        hello: hello
+    };
+} );
+
+MyModules.define( "foo", ["bar"], function(bar){
+    var hungry = "hippo";
+
+    function awesome() {
+        console.log( bar.hello( hungry ).toUpperCase() );
+    }
+
+    return {
+        awesome: awesome
+    };
+} );
+
+var bar = MyModules.get( "bar" );
+var foo = MyModules.get( "foo" );
+
+console.log(
+    bar.hello( "hippo" )
+); // Let me introduce: hippo
+
+foo.awesome(); // LET ME INTRODUCE: HIPPO
+            </pre>
+        <strong>2.未来的模块机制:ES6为模块增加了一级语法支持，通过模块加载时，ES6会将文件当做单独的模块来处理，每个模块都可以导入其他模块或特定的API成员，当然也可以导出自己的API成员</strong>
+        <pre>
+bar.js
+function hello(who) {
+    return "Let me introduce: " + who;
+}
+
+export hello;
+
+foo.js
+// import only `hello()` from the "bar" module
+import hello from "bar";
+
+var hungry = "hippo";
+
+function awesome() {
+    console.log(
+        hello( hungry ).toUpperCase()
+    );
+}
+
+export awesome;
+
+
+// import the entire "foo" and "bar" modules
+module foo from "foo";
+module bar from "bar";
+
+console.log(
+    bar.hello( "rhino" )
+); // Let me introduce: rhino
+
+foo.awesome(); // LET ME INTRODUCE: HIPPO
+
+
+
+        </pre>
+        <h2 id="tag3">闭包的陷阱(循环)</h2>
+        <pre>
+for (var i=1; i<=5; i++) {
+    setTimeout( function timer(){
+        console.log( i );
+    }, i*1000 );
+}
+
+for (var i=1; i<=5; i++) {
+    (function(){
+        setTimeout( function timer(){
+            console.log( i );
+        }, i*1000 );
+    })();
+}
+//延迟函数的回调发生在循环结束之后
+
+
+for (var i=1; i<=5; i++) {
+    (function(j){
+        setTimeout( function timer(){
+            console.log( j );
+        }, j*1000 );
+    })( i );
+}
+
+for (let i=1; i<=5; i++) {
+    setTimeout( function timer(){
+        console.log( i );
+    }, i*1000 );
+}                           
+            </pre>
+    </section>
+    <footer>一个代码爱好者</footer>
+</body>
+
+</html>

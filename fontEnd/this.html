@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>默认绑定</li>
+            </a>
+            <a href="#tag2">
+                <li>隐式绑定</li>
+            </a>
+            <a href="#tag3">
+                <li>显示绑定</li>
+            </a>
+            <a href="#tag4">
+                <li>new绑定</li>
+            </a>
+            <a href="#tag5">
+                <li>绑定优先级</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>javascript的this指针绑定规则</h1>
+        <strong>每个函数的this是在调用时绑定的，this完全取决于函数的调用位置</strong>
+        <h2 id="tag1">默认绑定</h2>
+        <p>在非严格模式下默认绑定全局变量，在严格模式下默认绑定到undefined,不要混用严格模式与非严格模式。</p>
+        <h2 id="tag2">隐式绑定</h2>
+        <p>函数调用存在上下文对象的时候，隐式绑定将会把函数调用的this绑定到上下文对象(引用链的最高层)</p>
+        <strong>存在隐式丢失现象</strong>
+        <p>情形1:</p>
+        <pre>
+function foo() {
+    console.log( this.a );
+}
+
+var obj = {
+    a: 2,
+    foo: foo
+};
+
+var bar = obj.foo; // function reference/alias!
+
+var a = "oops, global"; // `a` also property on global object
+
+bar(); // "oops, global"
+        </pre>
+        <p>情形2:</p>
+        <pre>
+function foo() {
+    console.log( this.a );
+}
+
+function doFoo(fn) {
+    // `fn` is just another reference to `foo`
+
+    fn(); // <-- call-site!
+}
+
+var obj = {
+    a: 2,
+    foo: foo
+};
+
+var a = "oops, global"; // `a` also property on global object
+
+doFoo( obj.foo ); // "oops, global"
+        </pre>
+        <strong>参数传递是一种隐式赋值，传入参数时也会被隐式赋值。同样的道理，回调函数丢失this绑定是非常常见的。还有一些情况this的行为会出乎我们的意料，调用回调函数的函数可能会修改this。在一些流行的javascript库中，时间处理器常常会把回调函数的this强制绑定到触发事件的DOM上。</strong>
+        <h2 id="tag3">显式绑定</h2>
+        <p>使用call()和apply(),显式绑定依然无法解决丢失绑定的问题，于是得到了显式绑定的变种，硬绑定</p>
+        <pre>
+function foo(something) {
+    console.log( this.a, something );
+    return this.a + something;
+}
+
+// simple `bind` helper
+function bind(fn, obj) {
+    return function() {
+        return fn.apply( obj, arguments );
+    };
+}
+
+var obj = {
+    a: 2
+};
+
+var bar = bind( foo, obj );
+
+var b = bar( 3 ); // 2 3
+console.log( b ); // 5
+        </pre>
+        <p>ES5提供了Function.prototype.bind(...)产生硬绑定，bind(...)会返回一个硬编码的新函数，他会把参数设置为this的上下文并调用原始函数</p>
+        <p>第三方库的很多函数，以及javascript语言和宿主环境中许多新的内置函数，都提供了一个可选的参数(上下文)，确保回调函数使用指定的this,比如forEach(...)。</p>
+        <h2 id="tag4">new绑定</h2>
+        <p>使用new构造函数的时候会自动执行以下步骤；</p>
+        <ul>
+            <li>1.创建一个新的对象</li>
+            <li>2.这个新对象会执行[[原型]]连接</li>
+            <li>3.这个新对象会绑定到函数调用的this</li>
+            <li>4.这个函数没有返回其他对象，那么new表达式中的函数调用会自动返回这个对象</li>
+        </ul>
+        <h3 id="tag5">绑定优先级</h3>
+        <ul>
+            <li>1.函数是否在new中调用，如果是this绑定这个新创建的对象
+                <br/>var bar = new foo()</li>
+            <li>2.函数是否通过call,apply(显式绑定)或是硬绑定，如果是，this绑定的是那个指定的对象
+                <br/>var bar = foo.call(obj2)</li>
+            <li>3.函数是否在某个上下文对象中调用(隐式)，如果是，this绑定到那个上下文对象
+                <br/>var bar = obj1.foo()</li>
+            <li>4.如果都不是使用默认绑定。严格模式下绑定undefined，非严格模式下绑定到全局对象。
+                <br/>var bar = foo()</li>
+        </ul>
+    </section>
+    <footer>一个代码爱好者</footer>
+</body>
+
+</html>

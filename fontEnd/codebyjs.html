@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>事件处理</li>
+            </a>
+            <a href="#tag2">
+                <li>避免使用全局变量</li>
+            </a>
+            <a href="#tag3">
+                <li>避免使用浏览器嗅探</li>
+            </a>
+            <a href="#tag4">
+                <li>抽离配置信息</li>
+            </a>
+            <a href="#tag5">
+                <li>良好的注释风格</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>良好的javascript编写习惯</h1>
+        <h2 id="tag1">事件处理</h2>
+        <h3>规则1：隔离应用逻辑</h3>
+        <p>将应用逻辑从事件处理程序中抽离出来，一方面有利于多个事件处理相同的逻辑，一方面方便调试。</p>
+        <h3>规则2: 不要分发事件对象</h3>
+        <p>处理事件时，最好让事件处理程序成为接触到event事件的唯一函数。事件处理程序应该在进入应用逻辑之前，针对event事件执行必要的操作，包括处理事件冒泡，或者阻止默认行为事件，都应该直接包含在事件的处理程序中。</p>
+        <pre>
+var myApplication = {
+	
+	handleClick : function(event){
+			//假设事件支持DOM level2
+			event.preventDefault();
+			event.stopPropagation();
+			
+			//传入应用逻辑
+			this.showPopus(event.clientX ,event.clientY);
+	},
+	showPopus : function(x,y){
+		var popus = document.getElementById("popus");
+		popus.style.left = x + "px";
+		popus.style.right = y +"px";
+		popus.className = "reveal";
+	}
+}
+
+addListener(element,"click",function(event){
+	myApplication.handleClick(event);
+});			
+		</pre>
+        <h2 id="tag2">避免使用全局变量</h2>
+        <h3>1.单全局变量（jQuery中定义了两个全局变量：jQuery,$)</h3>
+        <pre>
+var MaintainableJS = {};
+		
+		MaintainableJS.Book = function(title){
+			this.title = title;
+			this.page = 1;
+		};
+		
+		MaintainableJS.Book.prototype.turnPage = function(direction){
+			this.page +=direction;
+		};
+		
+		MaintainableJS.Chapter1 = new MaintainableJS.Book("Introduction to Style Guidelines");
+		MaintainableJS.Chapter2 = new MaintainableJS.Book("Basic Formatting");
+		MaintainableJS.Chapter3 = new MaintainableJS.Book("Comment");			
+		</pre>
+        <h3>2.命名空间</h3>
+        <pre>
+var Global = {
+	namespace : function(ns){
+		var parts = ns .splice("."),
+		object = this,
+		i len;
+		
+		for(i=0,len=parts.length;i < len;i+=)    
+			if(!object[parts[i]]){
+				object[parts[i]]={};		//不存在该命名空间对象就创建
+			}
+			object = object[parts[i]];
+		}
+	return object;
+	}
+};
+
+Global.namespace("Books.HighPerformanceJavascript");  
+//Global对象存在Books.HighPerformanceJavascript属性
+Global.Books.HighPerformanceJavascript.author = 'NI';
+console.log(Global.Books.HighPerformanceJavascript.author);			
+	</pre>
+        <h3>3.模块-- "异步模块定义"(AMD)</h3>
+        <pre>
+define("my-books",[dependency1,dependency2],function(){
+	var Books = {};
+	Books.MaintainableJS = {
+	author : "NC"
+	};
+	return Books;
+});
+		
+		
+//使用Dojo加载AMD模块
+var books = dojo.require("my-books");
+console.log(books.MaintainableJS.author);
+				
+	</pre>
+        <h3>4.零全局变量</h3>
+        <pre>
+(function(win){
+	"use strict";
+	
+	var doc = win.document;
+	console.log(doc);
+	
+}(window));	
+	</pre>
+        <h2 id="tag3">避免使用浏览器嗅探</h2>
+        <p>特性推断和浏览器推断都是糟糕的做法，应当不惜一切代价避免使用。纯粹的特性检测是一种良好的方法，而且几乎在任何的情况下都是你想要的结果，通常你仅需要在使用前检测特性是否能用。使用用户代理嗅探要记住，这么做的唯一方式是针对旧的或者是特定版本的浏览器，而绝不应该是针对新版本或是未来的浏览器。尽可能的使用特性检测，如果不能这么做的时候，退而求其次。考虑用户代理检测，永远不要使用浏览器推断，否则会导致维护性差，并且代码会随着浏览器更新不断更新。</p>
+        <pre>
+function getById(id){
+	var element = null;
+	if(document.getElementById){		//DOM
+		element = document.getElementById(id);
+	}else if(document.all){		//IE
+		element = document.all[id];
+	}else if(document.layers){		//Netscape<=4				
+		element = document.layers[id];
+	}
+}
+		</pre>
+        <h2 id="tag4">将配置信息从代码中分离出来</h2>
+        <pre>
+var config = {
+	MAG_INVALID_VALUE: "Invalid value",
+	URL_INVALUE: "/error/invalid.php",
+	CSS_SELECTED: "selected"
+};
+
+function validate(value){
+	if(!value){
+		alert(config.MAG_INVALID_VALUE);
+		location.href = config.URL_INVALUE;
+	}
+}
+function toggleSelected(element){
+	if(hasClass(element,config.CSS_SELECTED)){
+		removeClass(element,config.CSS_SELECTED);
+	}else{
+		addClass(element,config.CSS_SELECTED);
+	}
+}		
+		</pre>
+        <h2 id="tag5">使用良好的注释</h2>
+        <pre>
+/**
+如果需要深拷贝，请使用'clone()'
+@method merge
+@param {Object} 被合并的一个或者多个对象
+@return {Object} 一个新的被合并的对象
+**/
+Y.merge = function(){
+	var args = arguments,
+		i = 0,
+		len = args.length,
+		result = {};
+		
+	for(;i < len;i++){
+		Y.mix(result,args[i],true);
+	}
+	return result;
+};						
+		</pre>
+    </section>
+    <footer>一个代码爱好者</footer>
+</body>
+
+</html>

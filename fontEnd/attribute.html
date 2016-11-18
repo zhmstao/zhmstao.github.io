@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>zhgt</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link rel="stylesheet" type="text/css" href="../layout.css">
+</head>
+
+<body>
+    <header><a href="../index.html">张涛的学习笔记</a></header>
+    <aside class="d-grid-3">
+        <ul>
+            <a href="#tag1">
+                <li>属性描述符</li>
+            </a>
+            <a href="#tag2">
+                <li>可计算属性名</li>
+            </a>
+            <a href="#tag3">
+                <li>在单个属性上应用set,get</li>
+            </a>
+            <a href="#tag4">
+                <li>保持属性的不变形</li>
+            </a>
+            <a href="#tag5">
+                <li>属性的存在性</li>
+            </a>
+            <a href="#tag6">
+                <li>遍历</li>
+            </a>
+        </ul>
+    </aside>
+    <section class="d-grid-7 m-grid-4 d-grid-offset-3">
+        <h1>javascript面对对象编程--属性</h1>
+        <h2 id="tag1">属性描述符</h2>
+        <pre>
+var myObject = {};
+Object.defineProperty( myObject, "a", {
+   	value: 2,	
+   	writable: true,	//可写
+   	configurable: true,	//可配置
+   	enumerable: true	//可枚举
+} );	
+myObject.a; // 2				
+			</pre>
+        <h2 id="tag2">可计算属性名(ES6)</h2>
+        <pre>
+var prefix = "foo";
+var myObject = {
+    [prefix + "bar"]: "hello",
+    [prefix + "baz"]: "world"
+};
+myObject["foobar"]; // hello
+myObject["foobaz"]; // world						
+				</pre>
+        <h2 id="tag3">在单个属性上应用[[set]],[[get]]</h2>
+        <p>存在[[set]] , [[get]]后将忽略value和writable特性</p>
+        <pre>
+var myObject = {
+    // define a getter for `a`
+    get a() {
+        return this._a_;
+    },
+    // define a setter for `a`
+    set a(val) {
+        this._a_ = val * 2;
+    }
+};
+myObject.a = 2;
+myObject.a; // 4					
+					</pre>
+        <h2 id="tag4">保持属性的不变性</h2>
+        <ul>
+            <li>禁止对象扩展：Object.preventExtensions(...)</li>
+            <li>密封对象：Object.seal(...) //将现有属性标记为configurale:false密封之后不能够添加新属性，也不能配置或者删除任何属性，但是可以改变呢属性的值</li>
+            <li>冻结对象: Object.freeze(...) //seal() + writable:false;</li>
+        </ul>
+        <h2 id="tag5">属性的存在性</h2>
+        <ul>
+            <li>... in obj; //检查[[prototype]] </li>
+            <li>obj.hasOwnPropety(...) //不检查[[prototype]]</li>
+            <li>for(var k in obj) //遍历可枚举属性 遍历[[prototype]] </li>
+            <li>Object.keys(...) //遍历可枚举属性返回数组 不遍历[[prototype]]</li>
+            <li>Object.getOwnPropertyNames(...) // 遍历可属性返回数组 不遍历[[prototype]]
+                <br/>
+            </li>
+        </ul>
+        <h2 id="tag6">遍历</h2>
+        <p>遍历下标</p>
+        <ul>
+            <li>for(var i=0;i
+                < myArray.length;i++);</li>
+                    <li>for(var k in obj);</li>
+        </ul>
+        <p>遍历值</p>
+        <ul>
+            <li>forEach(...) //遍历数组所有值并且忽略回调函数的所有值</li>
+            <li>every(...) //一直运行到回调函数返回false</li>
+            <li>some(...) //一直运行到回调函数返回true</li>
+            <li>for(var v of obj) //遍历值</li>
+        </ul>
+        <strong>for...of 黑盒子：首先向被访问对象请求一个迭代器对象，然后通过迭代器对象的next()方法遍历数组</strong>
+        <pre>
+var myArray = [ 1, 2, 3 ];
+var it = myArray[Symbol.iterator]();	//使用ES6的Symbol.iterator获取对象的@@iterator内部属性
+
+it.next(); // { value:1, done:false }
+it.next(); // { value:2, done:false }
+it.next(); // { value:3, done:false }
+it.next(); // { done:true }				
+			</pre>
+        <p>普通对象没有内置的@@iterator对象，无法自动完成for...of遍历对想要便利的对象定义@@iterator
+        </p>
+        <pre>
+var myObject = {
+    a: 2,
+    b: 3
+};
+
+Object.defineProperty( myObject, Symbol.iterator, {
+    enumerable: false,
+    writable: false,
+    configurable: true,
+    value: function() {
+        var o = this;
+        var idx = 0;
+        var ks = Object.keys( o );
+        return {
+            next: function() {
+                return {
+                    value: o[ks[idx++]],
+                    done: (idx > ks.length)
+                };
+            }
+        };
+    }
+} );
+
+// iterate `myObject` manually
+var it = myObject[Symbol.iterator]();
+it.next(); // { value:2, done:false }
+it.next(); // { value:3, done:false }
+it.next(); // { value:undefined, done:true }
+
+// iterate `myObject` with `for..of`
+for (var v of myObject) {
+    console.log( v );
+}
+// 2
+// 3										
+			</pre>
+    </section>
+    <footer>一个代码爱好者</footer>
+</body>
+
+</html>
